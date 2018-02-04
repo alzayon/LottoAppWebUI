@@ -11,9 +11,10 @@ import Home from './pages/Home.jsx';
 import AddEntry from './pages/AddEntry.jsx';
 import EditEntry from './pages/EditEntry.jsx';
 import ListEntries from './pages/ListEntries.jsx';
+import ListWinningEntries from './pages/ListWinningEntries.jsx';
 import GenerateLuckyPick from './pages/GenerateLuckyPick.jsx';
 
-import EntryService from '../services/EntryService.js';
+import EntryService from '../services/api/EntryService.js';
 
 import { deepOrange500 } from 'material-ui/styles/colors';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
@@ -25,6 +26,8 @@ import Drawer from 'material-ui/Drawer'
 import MenuItem from 'material-ui/MenuItem'
 import RaisedButton from 'material-ui/RaisedButton'
 
+
+
 const muiTheme = getMuiTheme({
     palette: {
     accent1Color: deepOrange500,
@@ -35,7 +38,7 @@ class App extends React.Component {
 
     constructor(props) {
         super(props);
-        this.entryService = new EntryService();
+        this.entryService = props.entryService;
     }
 
     static get childContextTypes() {
@@ -97,6 +100,13 @@ class App extends React.Component {
                                         }}
                                     />
                                     <MenuItem
+                                        primaryText="List Winning Entries"
+                                        containerElement={<Link to="/list-winning-entries" />}
+                                        onTouchTap={() => {
+                                            this.toggleDrawer()
+                                        }}
+                                    />
+                                    <MenuItem
                                         primaryText="Add Entry"
                                         containerElement={<Link to="/add-entry" />}
                                         onTouchTap={() => {
@@ -127,6 +137,11 @@ class App extends React.Component {
                                                                 entryService={this.entryService}/>
                                     }
                                 />
+                                <Route path="/list-winning-entries"
+                                    render={routeProps => <ListWinningEntries {...routeProps}
+                                                                entryService={this.entryService}/>
+                                    }
+                                />
                                 <Route path="/edit-entry/:id"
                                     render={routeProps => <EditEntry {...routeProps}
                                                                 entryService={this.entryService}/>
@@ -144,5 +159,9 @@ class App extends React.Component {
         );//End of return ()
     }
 }
+
+App.propTypes = {
+  entryService: PropTypes.object.isRequired
+};
 
 export default App;

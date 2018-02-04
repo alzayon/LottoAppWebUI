@@ -1,13 +1,17 @@
 var moment = require('moment');
 var $ = require('jquery');
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
+var toastr = require('toastr');
+
+import {Observable} from 'rxjs/Observable';
+import {Subject} from 'rxjs/Subject';
 import 'rxjs/add/operator/throttleTime';
 
 //https://facebook.github.io/react/blog/2017/04/07/react-v15.5.0.html#migrating-from-react.proptypes
 import PropTypes from 'prop-types';
 
 import React from 'react';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 
 //http://www.material-ui.com/#/components/table
 import {
@@ -16,7 +20,7 @@ import {
     TableHeader,
     TableHeaderColumn,
     TableRow,
-    TableRowColumn,
+    TableRowColumn
 } from 'material-ui/Table';
 
 import { Link } from 'react-router-dom';
@@ -24,91 +28,75 @@ import ConfirmModal from '../widgets/ConfirmModal.jsx';
 
 import SearchBar from 'material-ui-search-bar'
 
-
-const ModalBody = () => {
-    return (
-        <div>
-            <h3>Modal Body</h3>
-        </div>
-    );
-};
+import * as entryDispatcher from '../../dispatcher/entry_dispatcher.js';
+import Entry from '../../models/Entry.js';
 
 class ListEntries extends React.Component {
-    constructor(props) {
-        super(props);
+    constructor(props, context) {
+        super(props, context);
         this.entryService = props.entryService;
 
         this.deleteLinkClicked = this.deleteLinkClicked.bind(this);
-        this.deleteEntryAndCloseModal =
-            this.deleteEntryAndCloseModal.bind(this);
+        this.deleteEntryAndCloseModal = this.deleteEntryAndCloseModal.bind(this);
         this.closeDeleteModal = this.closeDeleteModal.bind(this);
         this.onRowSelection = this.onRowSelection.bind(this);
         this.onSearch = this.onSearch.bind(this);
         this.tableBody = null;
-        this.rowIndexSelected = -1;
         this.searchSubject = new Subject();
 
+        this.props.entryActions.showConfirmDeleteModal(false);
+        this.props.entryActions.replaceCurrentSelectedEntry(null);
+
+    }
+
+    loadEntries() {
+        this.props.entryActions.getAllEntries(this.entryService);
+    }
+
+    setupSearch() {
         //TODO
         //Use throttle or debounce
         var self = this;
-        this.searchSubject
-            .throttleTime(1000)
-            .subscribe(e => {
-                self.entryService.getEntriesByCategory(e).then((data, textStatus, jqXHR) => {
-                    self.setState({
-                        'lottoEntries' : data
-                    });
-                });
-            });
+        this.searchSubject.throttleTime(1000).subscribe(e => {
+            this.props.entryActions.getEntriesByCategory(this.entryService, e);
+        });
     }
 
     componentWillMount() {
-        this.setState({
-            lottoEntries: [],
-            showConfirmDeleteModal: false,
-            currentSelectedEntry: null
-        });
+
     }
 
     componentDidMount() {
-        this.entryService.getAllEntries().then((data, textStatus, jqXHR) => {
-            this.setState({
-                'lottoEntries' : data
-            });
-        });
+        this.props.entryActions.getAllEntries(this.entryService);
+        this.setupSearch();
     }
 
+    componentWillReceiveProps(nextProps) {}
+
     deleteLinkClicked(e) {
-        this.setState({
-            showConfirmDeleteModal: true
-        });
+        this.props.entryActions.showConfirmDeleteModal(true);
         e.preventDefault();
     }
 
     deleteEntryAndCloseModal(e) {
-        let currentSelectedEntry = this.state.currentSelectedEntry;
-        this.entryService.deleteEntry(currentSelectedEntry._id)
-        .then((data, textStatus, jqXHR) => {
-            console.log('delete finished');
-            this.entryService.getAllEntries().then((data, textStatus, jqXHR) => {
-                //https://stackoverflow.com/questions/40268707/how-to-unselect-all-rows-from-material-uis-table-in-reactjs
-                this.tableBody.setState({
-                    selectedRows: []
-                });
-                this.setState({
-                    showConfirmDeleteModal: false,
-                    currentSelectedEntry: null,
-                    rowIndexSelected: -1
-                });
-                this.setState({
-                    'lottoEntries' : data
-                });
-            });
+        let successCallback = () => {
+            toastr.success('Delete successful!', 'Success');
+            this.props.entryActions.getAllEntries(this.entryService);
+            //https://stackoverflow.com/questions/40268707/how-to-unselect-all-rows-from-material-uis-table-in-reactjs
+            this.tableBody.setState({selectedRows: []});
+            this.props.entryActions.showConfirmDeleteModal(false);
+        };
 
-        })
-        .fail(function(data, jqXHR) {
-            alert('error');
-        });
+        let errorCallback = (error) => {
+            toastr.error('Something went wrong.', 'Error');
+        };
+
+        let currentSelectedEntry = this.props.entryState.entry;
+        this.props.entryActions.deleteEntry(this.entryService,
+            currentSelectedEntry.id,
+            successCallback,
+            errorCallback);
+
     }
 
     onSearch(e) {
@@ -116,20 +104,15 @@ class ListEntries extends React.Component {
     }
 
     closeDeleteModal(e) {
-        this.setState({
-            showConfirmDeleteModal: false
-        });
+        this.props.entryActions.showConfirmDeleteModal(false);
     }
 
     //https://stackoverflow.com/questions/36656447/react-material-ui-table-cant-get-element-from-row
     //http://www.material-ui.com/#/components/table
     onRowSelection(rows) {
         let rowIndexSelected = rows[0]; //Assuming only one row is selected at a time
-        let currentSelectedEntry = this.state.lottoEntries[rowIndexSelected];
-        this.setState({
-            currentSelectedEntry: currentSelectedEntry,
-            rowIndexSelected: rowIndexSelected
-        });
+        let currentSelectedEntry = this.props.entryState.entries[rowIndexSelected];
+        this.props.entryActions.replaceCurrentSelectedEntry(currentSelectedEntry);
     }
 
     render() {
@@ -138,73 +121,85 @@ class ListEntries extends React.Component {
         let onSearch = this.onSearch;
         return (
             <div>
-                <ConfirmModal showModal={this.state.showConfirmDeleteModal}
+
+                <ConfirmModal showModal={this.props.entryState.showConfirmDeleteModal}
                     closeCallback={this.closeDeleteModal}
                     okCallback={this.deleteEntryAndCloseModal}
-                    modalBody={<ModalBody/>}/>
-
-                    <h2 className="row">List Entries</h2>
-
-                    <div className="row">
-                        <SearchBar
-                            onChange={onSearch}
-                            onRequestSearch={onSearch}
-                            style={{
-                                margin: '0 auto',
-                                marginBottom: 60,
-                                maxWidth: 800
-                            }}
-                        />
+                    modalHeading={'Confirm Delete'}
+                    affirmativeText={'Delete'}>
+                    <div>
+                        <p>
+                            Are you sure you want to delete this entry?
+                        </p>
                     </div>
+                </ConfirmModal>
 
-                    <div className="row">
-                        <div>
-                            <Table onRowSelection={onRowSelection}>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHeaderColumn>ID</TableHeaderColumn>
-                                        <TableHeaderColumn>Entry</TableHeaderColumn>
-                                        <TableHeaderColumn>Date</TableHeaderColumn>
-                                        <TableHeaderColumn>Category</TableHeaderColumn>
-                                        <TableHeaderColumn>-</TableHeaderColumn>
-                                        <TableHeaderColumn>-</TableHeaderColumn>
-                                    </TableRow>
-                                </TableHeader>
-                                {/* https://stackoverflow.com/questions/39995836/how-to-set-component-state-based-on-material-ui-selected-table-rows */}
-                                <TableBody deselectOnClickaway={false}
-                                    ref={tableBody => this.tableBody = tableBody}>
-                                    {/* https://stackoverflow.com/questions/29018963/iterating-through-a-json-response-in-jsx-render-for-react-js */}
-                                    {this.state.lottoEntries.map(function(entry, i) {
-                                        var dateDisplay = moment.utc(entry.date).toDate().toString();
-                                        return (
-                                            <TableRow key={entry._id}>
-                                                <TableRowColumn>{entry._id}</TableRowColumn>
-                                                <TableRowColumn>{entry.entry}</TableRowColumn>
-                                                <TableRowColumn>{dateDisplay}</TableRowColumn>
-                                                <TableRowColumn>{entry.category}</TableRowColumn>
-                                                <TableRowColumn>
-                                                    {/* https://stackoverflow.com/questions/21668025/react-jsx-access-props-in-quotes */}
-                                                    <Link to={"/edit-entry/" + entry._id}>Edit</Link>
-                                                </TableRowColumn>
-                                                <TableRowColumn>
-                                                    <a href="" onClick={deleteLinkClicked}>Delete</a>
-                                                </TableRowColumn>
-                                            </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    </div>
+                <h2 className="row">List Entries</h2>
 
+                <div className="row">
+                    <SearchBar onChange={onSearch} onRequestSearch={onSearch} style={{
+                        margin: '0 auto',
+                        marginBottom: 60,
+                        maxWidth: 800
+                    }}/>
                 </div>
-            );
-        }
+
+                <div className="row">
+                    <div>
+                        <Table onRowSelection={onRowSelection}>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHeaderColumn>ID</TableHeaderColumn>
+                                    <TableHeaderColumn>Entry</TableHeaderColumn>
+                                    <TableHeaderColumn>Date</TableHeaderColumn>
+                                    <TableHeaderColumn>Category</TableHeaderColumn>
+                                    <TableHeaderColumn>-</TableHeaderColumn>
+                                    <TableHeaderColumn>-</TableHeaderColumn>
+                                </TableRow>
+                            </TableHeader>
+                            {/* https://stackoverflow.com/questions/39995836/how-to-set-component-state-based-on-material-ui-selected-table-rows */}
+                            <TableBody deselectOnClickaway={false} ref={tableBody => this.tableBody = tableBody}>
+                                {/* https://stackoverflow.com/questions/29018963/iterating-through-a-json-response-in-jsx-render-for-react-js */}
+                                {this.props.entryState.entries.map(function(entry, i) {
+                                    var dateDisplay = entry.date.toString();
+                                    return (
+                                        <TableRow key={entry.id}>
+                                            <TableRowColumn>{entry.id}</TableRowColumn>
+                                            <TableRowColumn>{entry.entryCombination}</TableRowColumn>
+                                            <TableRowColumn>{dateDisplay}</TableRowColumn>
+                                            <TableRowColumn>{entry.category}</TableRowColumn>
+                                            <TableRowColumn>
+                                                {/* https://stackoverflow.com/questions/21668025/react-jsx-access-props-in-quotes */}
+                                                <Link to={"/edit-entry/" + entry.id}>Edit</Link>
+                                            </TableRowColumn>
+                                            <TableRowColumn>
+                                                <a href="" onClick={deleteLinkClicked}>Delete</a>
+                                            </TableRowColumn>
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </div>
+
+            </div>
+        );
     }
+}
 
-    ListEntries.propTypes = {
-        entryService: PropTypes.object.isRequired,
+ListEntries.propTypes = {
+    entryService: PropTypes.object.isRequired
+};
+
+function mapStateToProps(state, ownProps) {
+    return Object.assign({}, {entryState: state.entryState});
+}
+
+function mapDispatchToProps(dispatch) {
+    return {
+        entryActions: bindActionCreators(entryDispatcher, dispatch)
     };
+}
 
-
-    export default ListEntries;
+export default connect(mapStateToProps, mapDispatchToProps)(ListEntries);

@@ -27,7 +27,8 @@ class GenerateLuckyPick extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleStartRangeChange = this.handleStartRangeChange.bind(this);
         this.handleEndRangeChange = this.handleEndRangeChange.bind(this);
-        this.generateNumber = this.generateNumber.bind(this);
+        this.getRandomInt = this.getRandomInt.bind(this);
+        this.getRandomArbitrary = this.getRandomArbitrary.bind(this);
     }
 
     componentWillMount() {
@@ -43,7 +44,7 @@ class GenerateLuckyPick extends React.Component {
         var numbers = [];
         for(var i = 0; i < 6; i++) {
             var randomNumber
-                = this.generateNumber(this.state.rangeStart, this.state.rangeEnd);
+                = this.getRandomInt(this.state.rangeStart, this.state.rangeEnd);
             numbers.push(randomNumber);
         }
 
@@ -68,17 +69,32 @@ class GenerateLuckyPick extends React.Component {
         });
     }
 
-    generateNumber(min, max) {
-        //https://www.w3schools.com/js/js_random.asp
-        //https://stackoverflow.com/questions/4959975/generate-random-number-between-two-numbers-in-javascript
-        return Math.floor(Math.random() * (max - min + 1) + min);
+    /**
+     * Returns a random number between min (inclusive) and max (exclusive)
+     * https://stackoverflow.com/questions/1527803/generating-random-whole-numbers-in-javascript-in-a-specific-range
+     */
+    getRandomArbitrary(min, max) {
+        var minNum = parseInt(min);
+        var maxNum = parseInt(max);
+        return Math.random() * (minNum - maxNum) + minNum;
+    }
+
+    /**
+     * Returns a random integer between min (inclusive) and max (inclusive)
+     * Using Math.round() will give you a non-uniform distribution!
+     * https://stackoverflow.com/questions/1527803/generating-random-whole-numbers-in-javascript-in-a-specific-range
+     */
+    getRandomInt(min, max) {
+        var minNum = parseInt(min);
+        var maxNum = parseInt(max);
+        return Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum;
     }
 
     render() {
         return (
             <div>
                 <h2> Generate lucky pick </h2>
-                
+
                 <Card>
                     <CardText>
                         <div>

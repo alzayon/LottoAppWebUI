@@ -4,7 +4,7 @@ var path = require('path');
 var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 
-var distPath = path.join(__dirname, 'dist');
+var distPath = path.join(__dirname, '/../dist');
 
 module.exports = {
     devtool: 'cheap-module-eval-source-map',
@@ -36,7 +36,7 @@ module.exports = {
 
         //Serve the content from the dist folder
         //where webpack puts all compiled js, css, html and other codes together
-        contentBase: './dist',
+        contentBase: distPath,
 
         //https://github.com/webpack/webpack-dev-server/issues/345
         //https://github.com/webpack/webpack-dev-server/issues/147
@@ -58,8 +58,7 @@ module.exports = {
             },
 
             {
-                test: /\.scss$/,
-                exclude: /node_modules/,
+                test: /\.scss$/,                
                 loader: 'style-loader!css-loader!sass-loader'
             },
 
