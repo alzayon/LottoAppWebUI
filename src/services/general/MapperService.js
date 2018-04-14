@@ -4,12 +4,13 @@ import Entry from '../../models/Entry.js';
 
 export default class MapperService {
     mapJsonToEntry(json) {
-        return new Entry(json._id,
+        let entry = new Entry(json._id,
             json.category,
             json.entry,
             moment(json.date).toDate(),
-            json.winning == 'true',
+            json.winning == true,
             json.links);
+        return entry;    
     }
 
     mapEntryToJson(entry) {

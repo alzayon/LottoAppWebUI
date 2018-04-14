@@ -35,7 +35,7 @@ class EditEntry extends React.Component {
     }
 
     handleEntryFormCancel(e) {
-        this.props.history.push('/list-entries');
+        this.props.history.goBack();
     }
 
     //http://www.material-ui.com/#/components/date-picker
@@ -85,16 +85,20 @@ class EditEntry extends React.Component {
                 <h2>
                     Edit Entry
                 </h2>
-                <h3>
-                    Id : {this.props.entryState.entry.id}
-                </h3>
-                <EntryForm handleEntryChange={this.handleEntryChange}
-                    handleEntryDateChange={this.handleEntryDateChange}
-                    handleCategoryChange={this.handleCategoryChange}
-                    handleEntryFormSubmit={this.handleEntryFormSubmit}
-                    handleWinningChange={this.handleWinningChange}
-                    handleEntryFormCancel={this.handleEntryFormCancel}
-                    entry={this.props.entryState.entry}/>
+                {this.props.entryState.entry ? (
+                    <div>
+                    <h3>
+                        Id : {this.props.entryState.entry.id}
+                    </h3>
+                    <EntryForm handleEntryChange={this.handleEntryChange}
+                        handleEntryDateChange={this.handleEntryDateChange}
+                        handleCategoryChange={this.handleCategoryChange}
+                        handleEntryFormSubmit={this.handleEntryFormSubmit}
+                        handleWinningChange={this.handleWinningChange}
+                        handleEntryFormCancel={this.handleEntryFormCancel}
+                        entry={this.props.entryState.entry}/>
+                    </div>
+                ) : '' }
             </div>
         );
     }

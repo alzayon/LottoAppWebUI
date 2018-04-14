@@ -2,8 +2,8 @@ var moment = require('moment');
 var $ = require('jquery');
 var toastr = require('toastr');
 
-import {Observable} from 'rxjs/Observable';
-import {Subject} from 'rxjs/Subject';
+import { Observable } from 'rxjs/Observable';
+import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/throttleTime';
 
 //https://facebook.github.io/react/blog/2017/04/07/react-v15.5.0.html#migrating-from-react.proptypes
@@ -49,10 +49,6 @@ class ListEntries extends React.Component {
 
     }
 
-    loadEntries() {
-        this.props.entryActions.getAllEntries(this.entryService);
-    }
-
     setupSearch() {
         //TODO
         //Use throttle or debounce
@@ -62,16 +58,14 @@ class ListEntries extends React.Component {
         });
     }
 
-    componentWillMount() {
-
-    }
+    componentWillMount() { }
 
     componentDidMount() {
         this.props.entryActions.getAllEntries(this.entryService);
         this.setupSearch();
     }
 
-    componentWillReceiveProps(nextProps) {}
+    componentWillReceiveProps(nextProps) { }
 
     deleteLinkClicked(e) {
         this.props.entryActions.showConfirmDeleteModal(true);
@@ -83,7 +77,7 @@ class ListEntries extends React.Component {
             toastr.success('Delete successful!', 'Success');
             this.props.entryActions.getAllEntries(this.entryService);
             //https://stackoverflow.com/questions/40268707/how-to-unselect-all-rows-from-material-uis-table-in-reactjs
-            this.tableBody.setState({selectedRows: []});
+            this.tableBody.setState({ selectedRows: [] });
             this.props.entryActions.showConfirmDeleteModal(false);
         };
 
@@ -96,7 +90,6 @@ class ListEntries extends React.Component {
             currentSelectedEntry.id,
             successCallback,
             errorCallback);
-
     }
 
     onSearch(e) {
@@ -141,7 +134,7 @@ class ListEntries extends React.Component {
                         margin: '0 auto',
                         marginBottom: 60,
                         maxWidth: 800
-                    }}/>
+                    }} />
                 </div>
 
                 <div className="row">
@@ -160,7 +153,7 @@ class ListEntries extends React.Component {
                             {/* https://stackoverflow.com/questions/39995836/how-to-set-component-state-based-on-material-ui-selected-table-rows */}
                             <TableBody deselectOnClickaway={false} ref={tableBody => this.tableBody = tableBody}>
                                 {/* https://stackoverflow.com/questions/29018963/iterating-through-a-json-response-in-jsx-render-for-react-js */}
-                                {this.props.entryState.entries.map(function(entry, i) {
+                                {this.props.entryState.entries.map(function (entry, i) {
                                     var dateDisplay = entry.date.toString();
                                     return (
                                         <TableRow key={entry.id}>
@@ -193,7 +186,7 @@ ListEntries.propTypes = {
 };
 
 function mapStateToProps(state, ownProps) {
-    return Object.assign({}, {entryState: state.entryState});
+    return Object.assign({}, { entryState: state.entryState });
 }
 
 function mapDispatchToProps(dispatch) {

@@ -14,8 +14,6 @@ import ListEntries from './pages/ListEntries.jsx';
 import ListWinningEntries from './pages/ListWinningEntries.jsx';
 import GenerateLuckyPick from './pages/GenerateLuckyPick.jsx';
 
-import EntryService from '../services/api/EntryService.js';
-
 import { deepOrange500 } from 'material-ui/styles/colors';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 

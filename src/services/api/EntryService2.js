@@ -79,7 +79,26 @@ class EntryService2 {
 
     getAllWinningEntries() {
         let entryApiPath = this.configService.getEntryApiPath() + '?winning=true';
-        return axios.get(entryApiPath);
+        return Observable.create((observer) => {
+            axios.get(entryApiPath, {
+                data: {
+                    'winning': true
+                },
+            })
+               .then((response) => {
+                   if (response.status == "200") {
+                       let entriesList = [];
+                       for (let ee of response.data) {
+                           let entryApiObject = this.mapperService.mapJsonToEntry(ee);
+                           entriesList.push(entryApiObject);
+                       }
+                       observer.next(entriesList);
+                       observer.complete();
+                   } else {
+                       //TODO
+                   }
+               });
+        });
     }
 
     getEntriesByCategory(category) {

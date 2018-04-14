@@ -1,16 +1,19 @@
 import EntryService2 from '../services/api/EntryService2';
-import { actionAddEntry,
-         actionEditEntry,
-         actionGetAllEntries,
-         actionGetEntriesByCategory,
-         actionGetEntry,
-         actionDeleteEntry,
-         actionUpdateEntryField,
-         actionShowConfirmDeleteModal,
-         actionReplaceCurrentSelectedEntry } from '../redux/action_creators.js';
+import {
+    actionAddEntry,
+    actionEditEntry,
+    actionGetAllEntries,
+    actionGetAllWinningEntries,
+    actionGetEntriesByCategory,
+    actionGetEntry,
+    actionDeleteEntry,
+    actionUpdateEntryField,
+    actionShowConfirmDeleteModal,
+    actionReplaceCurrentSelectedEntry
+} from '../redux/action_creators.js';
 
 export function addEntry(entryService, entryData) {
-    return function(dispatch) {
+    return function (dispatch) {
         entryService.addEntry(entryData)
             .subscribe(
                 (response) => {
@@ -37,7 +40,7 @@ export function editEntry(entryService,
     successCallback,
     errorCallback,
     completeCallback) {
-    return function(dispatch) {
+    return function (dispatch) {
         entryService.editEntry(entryData,
             successCallback,
             errorCallback,
@@ -67,7 +70,7 @@ export function editEntry(entryService,
 
 
 export function getAllEntries(entryService) {
-    return function(dispatch) {
+    return function (dispatch) {
         //TODO
         //Dispatch loading
         //Use rxjs startWith() operator
@@ -75,6 +78,17 @@ export function getAllEntries(entryService) {
         _getAllEntries(entryService, successCallback)
     }
 };
+
+
+export function getAllWinningEntries(entryService) {
+    return function (dispatch) {
+        //TODO
+        //Dispatch loading
+        //Use rxjs startWith() operator
+        let successCallback = (response) => dispatch(actionGetAllWinningEntries(response));
+        _getAllWinningEntries(entryService, successCallback)
+    }
+}
 
 function _getAllEntries(entryService, successCallback) {
     entryService.getAllEntries()
@@ -86,12 +100,26 @@ function _getAllEntries(entryService, successCallback) {
                 //TODO
                 //Dispatch an error
             },
-            () => {}
+            () => { }
+        );
+}
+
+function _getAllWinningEntries(entryService, successCallback) {
+    entryService.getAllWinningEntries()
+        .subscribe(
+            (response) => {
+                successCallback(response);
+            },
+            (error) => {
+                //TODO
+                //Dispatch an error
+            },
+            () => { }
         );
 }
 
 export function getEntriesByCategory(entryService, category) {
-    return function(dispatch) {
+    return function (dispatch) {
         //TODO
         //Dispatch loading
         //Use rxjs startWith() operator
@@ -104,14 +132,14 @@ export function getEntriesByCategory(entryService, category) {
                     //TODO
                     //Dispatch an error
                 },
-                () => {}
+                () => { }
             );
     }
 };
 
 
 export function getEntry(entryService, id) {
-    return function(dispatch) {
+    return function (dispatch) {
         //TODO
         //Dispatch loading
         //Use rxjs startWith() operator
@@ -124,13 +152,13 @@ export function getEntry(entryService, id) {
                     //TODO
                     //Dispatch an error
                 },
-                () => {}
+                () => { }
             );
     }
 };
 
 export function updateEntryField(entry) {
-    return function(dispatch) {
+    return function (dispatch) {
         dispatch(actionUpdateEntryField(entry))
     }
 }
@@ -140,36 +168,36 @@ export function deleteEntry(entryService,
     successCallback,
     errorCallback,
     completeCallback) {
-        return function(dispatch) {
-            entryService.deleteEntry(id)
-                .subscribe(
-                    (response) => {
-                        dispatch(actionDeleteEntry(id));
-                        if (successCallback) {
-                            successCallback();
-                        }
-                        if (completeCallback) {
-                            completeCallback();
-                        }
-                    },
-                    (error) => {
-                        if (errorCallback) {
-                            errorCallback(error);
-                        }
-                    },
-                    () => {}
-                );
-        }
+    return function (dispatch) {
+        entryService.deleteEntry(id)
+            .subscribe(
+                (response) => {
+                    dispatch(actionDeleteEntry(id));
+                    if (successCallback) {
+                        successCallback();
+                    }
+                    if (completeCallback) {
+                        completeCallback();
+                    }
+                },
+                (error) => {
+                    if (errorCallback) {
+                        errorCallback(error);
+                    }
+                },
+                () => { }
+            );
+    }
 }
 
 export function showConfirmDeleteModal(toggle) {
-    return function(dispatch) {
+    return function (dispatch) {
         dispatch(actionShowConfirmDeleteModal(toggle))
     }
 }
 
 export function replaceCurrentSelectedEntry(entry) {
-    return function(dispatch) {
+    return function (dispatch) {
         dispatch(actionReplaceCurrentSelectedEntry(entry))
     }
 }
